@@ -4,164 +4,321 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>✨ Peek-a-Booth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;600;700;800&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>✨ Peek-a-Booth ✨</h1>
-      <p class="subtitle">Strike a pose, darling~</p>
-    </header>
 
-    <div class="main-layout">
-
-      <!-- Left: Camera Controls -->
-      <aside class="controls">
-        <section>
-          <h3>🎨 Filters</h3>
-          <div class="filter-grid">
-            <button class="filter-btn active" data-filter="none">Normal</button>
-            <button class="filter-btn" data-filter="grayscale(100%)">B&W</button>
-            <button class="filter-btn" data-filter="sepia(100%)">Sepia</button>
-            <button class="filter-btn" data-filter="saturate(200%) hue-rotate(20deg)">Vivid</button>
-            <button class="filter-btn" data-filter="brightness(1.2) contrast(1.1)">Bright</button>
-            <button class="filter-btn" data-filter="hue-rotate(180deg)">Dreamy</button>
-            <button class="filter-btn" data-filter="contrast(1.4) saturate(0.8)">Moody</button>
-            <button class="filter-btn" data-filter="sepia(50%) hue-rotate(310deg) saturate(200%)">Rose</button>
-          </div>
-        </section>
-
-        <section>
-          <h3>🌈 Background</h3>
-          <div class="bg-grid">
-            <button class="bg-btn active" data-bg="none" style="background:#fff">None</button>
-            <button class="bg-btn" data-bg="pink" style="background:linear-gradient(135deg,#ffb3c6,#ff85a1)"></button>
-            <button class="bg-btn" data-bg="blue" style="background:linear-gradient(135deg,#a0c4ff,#6fa3ef)"></button>
-            <button class="bg-btn" data-bg="mint" style="background:linear-gradient(135deg,#b5ead7,#6fcf97)"></button>
-            <button class="bg-btn" data-bg="lavender" style="background:linear-gradient(135deg,#d4b8e0,#b39ddb)"></button>
-            <button class="bg-btn" data-bg="sunset" style="background:linear-gradient(135deg,#ffcc70,#ff6b6b)"></button>
-            <button class="bg-btn" data-bg="stars" style="background:#1a1a2e">⭐</button>
-            <button class="bg-btn" data-bg="confetti" style="background:linear-gradient(135deg,#ffeaa7,#fd79a8)">🎉</button>
-          </div>
-        </section>
-
-        <section>
-          <h3>🎀 Stickers</h3>
-          <div class="sticker-grid">
-            <button class="sticker-btn" data-sticker="🌸">🌸</button>
-            <button class="sticker-btn" data-sticker="⭐">⭐</button>
-            <button class="sticker-btn" data-sticker="🦋">🦋</button>
-            <button class="sticker-btn" data-sticker="🌈">🌈</button>
-            <button class="sticker-btn" data-sticker="💖">💖</button>
-            <button class="sticker-btn" data-sticker="🍒">🍒</button>
-            <button class="sticker-btn" data-sticker="✨">✨</button>
-            <button class="sticker-btn" data-sticker="🎀">🎀</button>
-            <button class="sticker-btn" data-sticker="🌙">🌙</button>
-            <button class="sticker-btn" data-sticker="🍓">🍓</button>
-            <button class="sticker-btn" data-sticker="🐱">🐱</button>
-            <button class="sticker-btn" data-sticker="🌺">🌺</button>
-          </div>
-          <button id="clear-stickers" class="small-btn">Clear stickers</button>
-        </section>
-      </aside>
-
-      <!-- Center: Camera -->
-      <div class="camera-section">
-        <div class="camera-wrapper" id="camera-wrapper">
-          <video id="video" autoplay playsinline></video>
-          <canvas id="overlay-canvas"></canvas>
-          <div id="sticker-layer"></div>
-          <div id="countdown" class="countdown hidden"></div>
-          <div id="flash" class="flash hidden"></div>
-        </div>
-
-        <div class="camera-actions">
-          <div class="shots-indicator">
-            <span id="shot-count">0</span>/<span id="total-shots">4</span> shots
-          </div>
-          <button id="capture-btn" class="capture-btn">📸 Take Photo</button>
-          <button id="reset-btn" class="small-btn">🔄 Reset</button>
-        </div>
-      </div>
-
-      <!-- Right: Strip Designer + Preview -->
-      <aside class="strip-section">
-
-        <!-- Strip Mode -->
-        <section class="strip-design-section">
-          <h3>🎞️ Strip Mode</h3>
-          <div class="mode-grid">
-            <button class="mode-btn active" data-mode="4-classic" data-count="4">
-              <span class="mode-icon">▬<br>▬<br>▬<br>▬</span>
-              <span>4 Classic</span>
-            </button>
-            <button class="mode-btn" data-mode="4-grid" data-count="4">
-              <span class="mode-icon grid2x2">▪▪<br>▪▪</span>
-              <span>4 Grid</span>
-            </button>
-            <button class="mode-btn" data-mode="6-classic" data-count="6">
-              <span class="mode-icon">▬<br>▬<br>▬<br>▬<br>▬<br>▬</span>
-              <span>6 Classic</span>
-            </button>
-            <button class="mode-btn" data-mode="6-grid" data-count="6">
-              <span class="mode-icon grid2x3">▪▪<br>▪▪<br>▪▪</span>
-              <span>6 Grid</span>
-            </button>
-          </div>
-        </section>
-
-        <!-- Strip Design -->
-        <section class="strip-design-section">
-          <h3>🖌️ Strip Design</h3>
-
-          <label class="design-label">Strip Background</label>
-          <div class="color-swatches" id="strip-bg-swatches">
-            <button class="swatch active" data-val="#fff5f8" style="background:#fff5f8" title="Blush"></button>
-            <button class="swatch" data-val="#ffffff" style="background:#ffffff;border:1px solid #eee" title="White"></button>
-            <button class="swatch" data-val="#1a1a2e" style="background:#1a1a2e" title="Night"></button>
-            <button class="swatch" data-val="#f0fff4" style="background:#f0fff4" title="Mint"></button>
-            <button class="swatch" data-val="#fffde7" style="background:#fffde7" title="Cream"></button>
-            <button class="swatch" data-val="#f3e5f5" style="background:#f3e5f5" title="Lavender"></button>
-            <input type="color" id="strip-bg-custom" value="#fff5f8" title="Custom color" class="color-input"/>
-          </div>
-
-          <label class="design-label">Border Color</label>
-          <div class="color-swatches" id="strip-border-swatches">
-            <button class="swatch active" data-val="#ffb3c6" style="background:#ffb3c6" title="Pink"></button>
-            <button class="swatch" data-val="#c77dff" style="background:#c77dff" title="Purple"></button>
-            <button class="swatch" data-val="#74b9ff" style="background:#74b9ff" title="Blue"></button>
-            <button class="swatch" data-val="#55efc4" style="background:#55efc4" title="Mint"></button>
-            <button class="swatch" data-val="#ffd166" style="background:#ffd166" title="Yellow"></button>
-            <button class="swatch" data-val="#1a1a2e" style="background:#1a1a2e" title="Dark"></button>
-            <input type="color" id="strip-border-custom" value="#ffb3c6" title="Custom color" class="color-input"/>
-          </div>
-
-          <label class="design-label">Label Text</label>
-          <input type="text" id="strip-label" class="text-input" value="✨ Peek-a-Booth ✨" maxlength="30" placeholder="Your label..." />
-
-          <label class="design-label">Label Color</label>
-          <div class="color-swatches" id="strip-label-swatches">
-            <button class="swatch active" data-val="#ff85a1" style="background:#ff85a1" title="Pink"></button>
-            <button class="swatch" data-val="#c77dff" style="background:#c77dff" title="Purple"></button>
-            <button class="swatch" data-val="#1a1a2e" style="background:#1a1a2e" title="Dark"></button>
-            <button class="swatch" data-val="#ffd166" style="background:#ffd166" title="Yellow"></button>
-            <button class="swatch" data-val="#55efc4" style="background:#55efc4" title="Mint"></button>
-            <input type="color" id="strip-label-custom" value="#ff85a1" title="Custom color" class="color-input"/>
-          </div>
-        </section>
-
-        <!-- Strip Preview -->
-        <section class="strip-design-section">
-          <h3>👁️ Preview</h3>
-          <div class="strip-preview-wrap">
-            <div class="strip" id="strip"></div>
-          </div>
-          <button id="download-btn" class="download-btn" disabled>💾 Download Strip</button>
-        </section>
-
-      </aside>
-    </div>
+  <!-- Floating decorations -->
+  <div class="floaties" aria-hidden="true">
+    <span>🌸</span><span>⭐</span><span>🦋</span><span>💖</span>
+    <span>✨</span><span>🌙</span><span>🎀</span><span>🍒</span>
+    <span>🌈</span><span>💫</span><span>🌺</span><span>🍓</span>
   </div>
+
+  <div class="app">
+
+    <!-- ══════════════════════════════════════
+         STAGE 1 — WELCOME / STRIP PICKER
+    ══════════════════════════════════════ -->
+    <div id="stage-welcome" class="stage active">
+      <div class="welcome-inner">
+        <div class="logo-wrap">
+          <h1 class="logo">✨ Peek-a-Booth ✨</h1>
+          <p class="tagline">your cutest photobooth experience~</p>
+        </div>
+
+        <p class="pick-label">choose your strip ✦</p>
+
+        <div class="strip-choices">
+
+          <!-- 2 pics -->
+          <button class="strip-choice" data-count="2" data-layout="classic">
+            <div class="choice-preview">
+              <div class="cp-film">
+                <div class="cp-hole"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-hole"></div>
+              </div>
+              <div class="cp-label">2 photos</div>
+              <div class="cp-sub">classic strip</div>
+            </div>
+          </button>
+
+          <!-- 4 pics classic -->
+          <button class="strip-choice" data-count="4" data-layout="classic">
+            <div class="choice-preview">
+              <div class="cp-film">
+                <div class="cp-hole"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-hole"></div>
+              </div>
+              <div class="cp-label">4 photos</div>
+              <div class="cp-sub">classic strip</div>
+            </div>
+          </button>
+
+          <!-- 4 pics grid -->
+          <button class="strip-choice" data-count="4" data-layout="grid">
+            <div class="choice-preview">
+              <div class="cp-grid cp-grid-2x2">
+                <div></div><div></div>
+                <div></div><div></div>
+              </div>
+              <div class="cp-label">4 photos</div>
+              <div class="cp-sub">2×2 grid</div>
+            </div>
+          </button>
+
+          <!-- 6 pics classic -->
+          <button class="strip-choice" data-count="6" data-layout="classic">
+            <div class="choice-preview">
+              <div class="cp-film">
+                <div class="cp-hole"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-slot"></div>
+                <div class="cp-hole"></div>
+              </div>
+              <div class="cp-label">6 photos</div>
+              <div class="cp-sub">classic strip</div>
+            </div>
+          </button>
+
+          <!-- 6 pics grid 2x3 -->
+          <button class="strip-choice" data-count="6" data-layout="grid">
+            <div class="choice-preview">
+              <div class="cp-grid cp-grid-2x3">
+                <div></div><div></div>
+                <div></div><div></div>
+                <div></div><div></div>
+              </div>
+              <div class="cp-label">6 photos</div>
+              <div class="cp-sub">2×3 grid</div>
+            </div>
+          </button>
+
+          <!-- 6 pics 3x2 -->
+          <button class="strip-choice" data-count="6" data-layout="wide">
+            <div class="choice-preview">
+              <div class="cp-grid cp-grid-3x2">
+                <div></div><div></div><div></div>
+                <div></div><div></div><div></div>
+              </div>
+              <div class="cp-label">6 photos</div>
+              <div class="cp-sub">3×2 wide</div>
+            </div>
+          </button>
+
+        </div>
+
+        <p class="extra-note">✦ you'll get 4 bonus shots to pick your faves ✦</p>
+        <p class="credit">made with 💖 by Anamika &amp; Khushi</p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         STAGE 2 — CAMERA / SHOOTING
+    ══════════════════════════════════════ -->
+    <div id="stage-camera" class="stage">
+      <div class="cam-layout">
+
+        <!-- Left toolbar -->
+        <aside class="cam-toolbar">
+          <div class="toolbar-section">
+            <p class="toolbar-title">🎨 filter</p>
+            <div class="filter-list">
+              <button class="filter-btn active" data-filter="none">Normal</button>
+              <button class="filter-btn" data-filter="grayscale(100%)">B&W</button>
+              <button class="filter-btn" data-filter="sepia(100%)">Sepia</button>
+              <button class="filter-btn" data-filter="saturate(200%) hue-rotate(20deg)">Vivid</button>
+              <button class="filter-btn" data-filter="brightness(1.2) contrast(1.1)">Bright</button>
+              <button class="filter-btn" data-filter="hue-rotate(180deg)">Dreamy</button>
+              <button class="filter-btn" data-filter="contrast(1.4) saturate(0.8)">Moody</button>
+              <button class="filter-btn" data-filter="sepia(50%) hue-rotate(310deg) saturate(200%)">Rose</button>
+            </div>
+          </div>
+
+          <div class="toolbar-section">
+            <p class="toolbar-title">🌈 bg</p>
+            <div class="bg-swatches">
+              <button class="bg-btn active" data-bg="none" style="background:#fff" title="None">✕</button>
+              <button class="bg-btn" data-bg="pink" style="background:linear-gradient(135deg,#ffb3c6,#ff85a1)" title="Pink"></button>
+              <button class="bg-btn" data-bg="blue" style="background:linear-gradient(135deg,#a0c4ff,#6fa3ef)" title="Blue"></button>
+              <button class="bg-btn" data-bg="mint" style="background:linear-gradient(135deg,#b5ead7,#6fcf97)" title="Mint"></button>
+              <button class="bg-btn" data-bg="lavender" style="background:linear-gradient(135deg,#d4b8e0,#b39ddb)" title="Lavender"></button>
+              <button class="bg-btn" data-bg="sunset" style="background:linear-gradient(135deg,#ffcc70,#ff6b6b)" title="Sunset"></button>
+              <button class="bg-btn" data-bg="stars" style="background:#1a1a2e" title="Stars">⭐</button>
+              <button class="bg-btn" data-bg="confetti" style="background:linear-gradient(135deg,#ffeaa7,#fd79a8)" title="Confetti">🎉</button>
+            </div>
+          </div>
+
+          <div class="toolbar-section">
+            <p class="toolbar-title">🎀 stickers</p>
+            <div class="sticker-palette">
+              <button class="sticker-btn" data-sticker="🌸">🌸</button>
+              <button class="sticker-btn" data-sticker="⭐">⭐</button>
+              <button class="sticker-btn" data-sticker="🦋">🦋</button>
+              <button class="sticker-btn" data-sticker="🌈">🌈</button>
+              <button class="sticker-btn" data-sticker="💖">💖</button>
+              <button class="sticker-btn" data-sticker="🍒">🍒</button>
+              <button class="sticker-btn" data-sticker="✨">✨</button>
+              <button class="sticker-btn" data-sticker="🎀">🎀</button>
+              <button class="sticker-btn" data-sticker="🌙">🌙</button>
+              <button class="sticker-btn" data-sticker="🍓">🍓</button>
+              <button class="sticker-btn" data-sticker="🐱">🐱</button>
+              <button class="sticker-btn" data-sticker="🌺">🌺</button>
+            </div>
+            <button id="clear-stickers" class="tiny-btn">clear</button>
+          </div>
+        </aside>
+
+        <!-- Camera center -->
+        <div class="cam-center">
+          <div class="cam-header">
+            <div class="cam-progress" id="cam-progress"></div>
+            <p class="cam-status" id="cam-status">get ready ✨</p>
+          </div>
+
+          <div class="camera-frame" id="camera-wrapper">
+            <div class="frame-corner tl"></div>
+            <div class="frame-corner tr"></div>
+            <div class="frame-corner bl"></div>
+            <div class="frame-corner br"></div>
+            <video id="video" autoplay playsinline></video>
+            <canvas id="overlay-canvas"></canvas>
+            <div id="sticker-layer"></div>
+            <div id="countdown" class="countdown hidden"></div>
+            <div id="flash" class="flash hidden"></div>
+            <div id="shot-flash" class="shot-flash hidden"></div>
+          </div>
+
+          <div class="cam-actions">
+            <button id="capture-btn" class="shutter-btn">
+              <span class="shutter-ring"></span>
+              <span class="shutter-dot"></span>
+            </button>
+            <p class="shutter-hint" id="shutter-hint">tap to shoot</p>
+          </div>
+        </div>
+
+        <!-- Right: thumbnail reel -->
+        <aside class="cam-reel">
+          <p class="toolbar-title">📸 shots</p>
+          <div class="reel" id="reel"></div>
+          <button id="done-shooting-btn" class="done-btn hidden">design strip →</button>
+        </aside>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         STAGE 3 — SELECT BEST PHOTOS
+    ══════════════════════════════════════ -->
+    <div id="stage-select" class="stage">
+      <div class="select-inner">
+        <h2 class="stage-title">pick your <span class="highlight">faves</span> ✨</h2>
+        <p class="stage-sub" id="select-sub">choose <strong id="select-need">4</strong> photos for your strip</p>
+        <div class="photo-picker" id="photo-picker"></div>
+        <button id="confirm-selection-btn" class="big-btn" disabled>make my strip →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         STAGE 4 — DESIGN STRIP
+    ══════════════════════════════════════ -->
+    <div id="stage-design" class="stage">
+      <div class="design-layout">
+
+        <!-- Left: design controls -->
+        <aside class="design-controls">
+          <h2 class="stage-title small">design your strip 🎨</h2>
+
+          <div class="dc-section">
+            <p class="dc-label">strip background</p>
+            <div class="color-row" id="strip-bg-swatches">
+              <button class="swatch active" data-val="#fff5f8" style="background:#fff5f8"></button>
+              <button class="swatch" data-val="#ffffff" style="background:#fff;border:1px solid #eee"></button>
+              <button class="swatch" data-val="#1a1a2e" style="background:#1a1a2e"></button>
+              <button class="swatch" data-val="#f0fff4" style="background:#f0fff4"></button>
+              <button class="swatch" data-val="#fffde7" style="background:#fffde7"></button>
+              <button class="swatch" data-val="#f3e5f5" style="background:#f3e5f5"></button>
+              <input type="color" class="color-input" id="strip-bg-custom" value="#fff5f8"/>
+            </div>
+          </div>
+
+          <div class="dc-section">
+            <p class="dc-label">border color</p>
+            <div class="color-row" id="strip-border-swatches">
+              <button class="swatch active" data-val="#ffb3c6" style="background:#ffb3c6"></button>
+              <button class="swatch" data-val="#c77dff" style="background:#c77dff"></button>
+              <button class="swatch" data-val="#74b9ff" style="background:#74b9ff"></button>
+              <button class="swatch" data-val="#55efc4" style="background:#55efc4"></button>
+              <button class="swatch" data-val="#ffd166" style="background:#ffd166"></button>
+              <button class="swatch" data-val="#1a1a2e" style="background:#1a1a2e"></button>
+              <input type="color" class="color-input" id="strip-border-custom" value="#ffb3c6"/>
+            </div>
+          </div>
+
+          <div class="dc-section">
+            <p class="dc-label">label text</p>
+            <input type="text" id="strip-label-input" class="text-input" value="✨ Peek-a-Booth ✨" maxlength="32"/>
+          </div>
+
+          <div class="dc-section">
+            <p class="dc-label">label color</p>
+            <div class="color-row" id="strip-label-swatches">
+              <button class="swatch active" data-val="#ff85a1" style="background:#ff85a1"></button>
+              <button class="swatch" data-val="#c77dff" style="background:#c77dff"></button>
+              <button class="swatch" data-val="#ffffff" style="background:#fff;border:1px solid #eee"></button>
+              <button class="swatch" data-val="#1a1a2e" style="background:#1a1a2e"></button>
+              <button class="swatch" data-val="#ffd166" style="background:#ffd166"></button>
+              <input type="color" class="color-input" id="strip-label-custom" value="#ff85a1"/>
+            </div>
+          </div>
+
+          <div class="dc-section">
+            <p class="dc-label">strip stickers</p>
+            <div class="sticker-palette small">
+              <button class="strip-sticker-btn" data-sticker="🌸">🌸</button>
+              <button class="strip-sticker-btn" data-sticker="⭐">⭐</button>
+              <button class="strip-sticker-btn" data-sticker="🦋">🦋</button>
+              <button class="strip-sticker-btn" data-sticker="💖">💖</button>
+              <button class="strip-sticker-btn" data-sticker="✨">✨</button>
+              <button class="strip-sticker-btn" data-sticker="🎀">🎀</button>
+              <button class="strip-sticker-btn" data-sticker="🌙">🌙</button>
+              <button class="strip-sticker-btn" data-sticker="🍓">🍓</button>
+            </div>
+            <button id="clear-strip-stickers" class="tiny-btn">clear</button>
+          </div>
+
+          <button id="download-btn" class="big-btn download">💾 save strip</button>
+          <button id="restart-btn" class="tiny-btn mt8">↩ start over</button>
+        </aside>
+
+        <!-- Right: strip preview -->
+        <div class="strip-preview-area">
+          <div class="strip-canvas-wrap" id="strip-canvas-wrap">
+            <div class="final-strip" id="final-strip">
+              <!-- built by JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- .app -->
+
+  <footer class="footer">made with 💖 by Anamika &amp; Khushi</footer>
 
   <script src="app.js"></script>
 </body>
