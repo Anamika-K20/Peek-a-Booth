@@ -514,3 +514,30 @@ body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--te
 }
 
 .toggle-text { color: var(--text); }
+
+/* ── Video export ── */
+.big-btn.video-btn {
+  background: linear-gradient(135deg, #c77dff, #74b9ff);
+  margin-top: 8px;
+}
+
+.video-progress {
+  width: 100%; margin-top: 10px;
+}
+
+.vp-bar {
+  width: 100%; height: 8px; background: var(--pink-light);
+  border-radius: 8px; overflow: hidden;
+}
+
+.vp-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--pink), var(--purple));
+  border-radius: 8px;
+  transition: width 0.1s linear;
+}
+
+.vp-label {
+  font-size: 0.75rem; font-weight: 700; color: var(--purple);
+  text-align: center; margin-top: 5px;
+}

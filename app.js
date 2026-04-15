@@ -423,8 +423,16 @@ function placeStripSticker(emoji) {
   wrap.appendChild(el);
 }
 
-// Download
+const downloadVideoBtn  = document.getElementById('download-video-btn');
+const videoProgressEl   = document.getElementById('video-progress');
+const vpFill            = document.getElementById('vp-fill');
+const vpLabel           = document.getElementById('vp-label');
+
+// Download image
 downloadBtn.addEventListener('click', downloadStrip);
+
+// Download video
+downloadVideoBtn.addEventListener('click', downloadStripVideo);
 
 function downloadStrip() {
   const isGrid = state.stripLayout !== 'classic';
@@ -493,6 +501,206 @@ function downloadStrip() {
     a.href = sc.toDataURL('image/png');
     a.click();
   });
+}
+
+// ── Video export ─────────────────────────────────
+async function downloadStripVideo() {
+  if (!window.MediaRecorder) {
+    alert('Your browser does not support video recording. Try Chrome or Edge.');
+    return;
+  }
+
+  const isWide = state.stripLayout === 'wide';
+  const isGrid = state.stripLayout !== 'classic';
+  const photoW = 360, photoH = 270, gap = 10, pad = 18, labelH = 50;
+
+  let cols, rows;
+  if (isWide)      { cols = 3; rows = 2; }
+  else if (isGrid) { cols = 2; rows = state.stripCount / 2; }
+  else             { cols = 1; rows = state.stripCount; }
+
+  const cw = photoW * cols + gap * (cols - 1) + pad * 2;
+  const ch = photoH * rows + gap * (rows - 1) + pad * 2 + labelH;
+
+  // Pre-load all images
+  const imgs = await Promise.all(state.selectedPhotos.map(src => new Promise((res, rej) => {
+    const img = new Image(); img.onload = () => res(img); img.onerror = rej; img.src = src;
+  })));
+
+  // Strip sticker data (position + emoji)
+  const stripStickers = [...document.querySelectorAll('.strip-sticker-overlay')].map(s => ({
+    text: s.textContent,
+    x: parseInt(s.style.left),
+    y: parseInt(s.style.top),
+  }));
+  const wrapEl = document.getElementById('strip-canvas-wrap');
+  const stickerScaleX = cw / wrapEl.offsetWidth;
+  const stickerScaleY = ch / wrapEl.offsetHeight;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = cw; canvas.height = ch;
+  const ctx = canvas.getContext('2d');
+
+  // Show progress
+  videoProgressEl.classList.remove('hidden');
+  downloadVideoBtn.disabled = true;
+  vpFill.style.width = '0%';
+  vpLabel.textContent = 'rendering… ✨';
+
+  const FPS = 30;
+  const HOLD_FRAMES   = FPS * 1.2;  // how long each photo stays fully visible
+  const SLIDE_FRAMES  = FPS * 0.5;  // slide-in duration per photo
+  const LABEL_FRAMES  = FPS * 1.0;  // label fade-in at end
+  const LOOP_PAUSE    = FPS * 0.8;  // pause before loop
+
+  const totalFrames = imgs.length * (HOLD_FRAMES + SLIDE_FRAMES) + LABEL_FRAMES + LOOP_PAUSE;
+
+  // Photo positions
+  function photoPos(i) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    return { x: pad + col * (photoW + gap), y: pad + row * (photoH + gap) };
+  }
+
+  // Draw strip background + border
+  function drawBase() {
+    ctx.fillStyle = state.stripBg;
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.strokeStyle = state.stripBorder;
+    ctx.lineWidth = 5;
+    ctx.strokeRect(5, 5, cw - 10, ch - 10);
+  }
+
+  // Draw label
+  function drawLabel(alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const ly = ch - labelH;
+    ctx.fillStyle = state.stripBorder;
+    ctx.fillRect(0, ly, cw, labelH);
+    ctx.fillStyle = state.stripLabelColor;
+    ctx.font = 'bold 20px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(state.stripLabel || '✨ Peek-a-Booth ✨', cw / 2, ly + 34);
+    ctx.restore();
+  }
+
+  // Draw stickers
+  function drawStickers(alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    stripStickers.forEach(s => {
+      ctx.font = '40px serif';
+      ctx.fillText(s.text, s.x * stickerScaleX, s.y * stickerScaleY + 40);
+    });
+    ctx.restore();
+  }
+
+  // Easing
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  // Collect frames
+  const chunks = [];
+  const stream = canvas.captureStream(FPS);
+  const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9'
+    : 'video/webm';
+  const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4_000_000 });
+  recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+  recorder.start();
+
+  let frame = 0;
+
+  function renderFrame() {
+    drawBase();
+
+    // Determine which photos are fully visible and which is sliding in
+    let photosDone = 0;
+    let slidingIdx = -1;
+    let slideProgress = 0;
+
+    const perPhoto = HOLD_FRAMES + SLIDE_FRAMES;
+
+    for (let i = 0; i < imgs.length; i++) {
+      const start = i * perPhoto;
+      const slideEnd = start + SLIDE_FRAMES;
+      const holdEnd  = start + perPhoto;
+
+      if (frame >= holdEnd) {
+        photosDone = i + 1;
+      } else if (frame >= start && frame < slideEnd) {
+        slidingIdx = i;
+        slideProgress = easeOut((frame - start) / SLIDE_FRAMES);
+        photosDone = i;
+        break;
+      } else if (frame >= slideEnd && frame < holdEnd) {
+        photosDone = i + 1;
+      }
+    }
+
+    // Draw fully visible photos
+    for (let i = 0; i < photosDone; i++) {
+      const { x, y } = photoPos(i);
+      ctx.drawImage(imgs[i], x, y, photoW, photoH);
+      ctx.strokeStyle = state.stripBorder; ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, photoW, photoH);
+    }
+
+    // Draw sliding photo
+    if (slidingIdx >= 0 && slidingIdx < imgs.length) {
+      const { x, y } = photoPos(slidingIdx);
+      ctx.save();
+      ctx.globalAlpha = slideProgress;
+      // slide from below
+      const offsetY = (1 - slideProgress) * 60;
+      ctx.drawImage(imgs[slidingIdx], x, y + offsetY, photoW, photoH * slideProgress);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+      // border
+      ctx.save();
+      ctx.globalAlpha = slideProgress;
+      ctx.strokeStyle = state.stripBorder; ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, photoW, photoH);
+      ctx.restore();
+    }
+
+    // Label fade in after all photos
+    const allDone = imgs.length * perPhoto;
+    if (frame >= allDone) {
+      const labelProgress = Math.min(1, (frame - allDone) / LABEL_FRAMES);
+      drawLabel(labelProgress);
+      drawStickers(labelProgress);
+    }
+
+    frame++;
+    const progress = Math.min(100, Math.round((frame / totalFrames) * 100));
+    vpFill.style.width = progress + '%';
+    vpLabel.textContent = progress < 100 ? `rendering… ${progress}%` : 'almost done ✨';
+
+    if (frame < totalFrames) {
+      requestAnimationFrame(renderFrame);
+    } else {
+      recorder.stop();
+    }
+  }
+
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: mime });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.download = 'peek-a-booth-strip.webm';
+    a.href = url;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    videoProgressEl.classList.add('hidden');
+    downloadVideoBtn.disabled = false;
+    vpLabel.textContent = 'rendering… ✨';
+    vpFill.style.width = '0%';
+  };
+
+  renderFrame();
 }
 
 restartBtn.addEventListener('click', () => {
