@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>✨ Cute Photobooth</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>✨ Photobooth ✨</h1>
+      <p class="subtitle">Strike a pose, darling~</p>
+    </header>
+
+    <div class="main-layout">
+      <!-- Left: Controls -->
+      <aside class="controls">
+        <section>
+          <h3>🎨 Filters</h3>
+          <div class="filter-grid">
+            <button class="filter-btn active" data-filter="none">Normal</button>
+            <button class="filter-btn" data-filter="grayscale(100%)">B&W</button>
+            <button class="filter-btn" data-filter="sepia(100%)">Sepia</button>
+            <button class="filter-btn" data-filter="saturate(200%) hue-rotate(20deg)">Vivid</button>
+            <button class="filter-btn" data-filter="brightness(1.2) contrast(1.1)">Bright</button>
+            <button class="filter-btn" data-filter="hue-rotate(180deg)">Dreamy</button>
+            <button class="filter-btn" data-filter="contrast(1.4) saturate(0.8)">Moody</button>
+            <button class="filter-btn" data-filter="sepia(50%) hue-rotate(310deg) saturate(200%)">Rose</button>
+          </div>
+        </section>
+
+        <section>
+          <h3>🌈 Background</h3>
+          <div class="bg-grid">
+            <button class="bg-btn active" data-bg="none" style="background:#fff">None</button>
+            <button class="bg-btn" data-bg="pink" style="background:linear-gradient(135deg,#ffb3c6,#ff85a1)"></button>
+            <button class="bg-btn" data-bg="blue" style="background:linear-gradient(135deg,#a0c4ff,#6fa3ef)"></button>
+            <button class="bg-btn" data-bg="mint" style="background:linear-gradient(135deg,#b5ead7,#6fcf97)"></button>
+            <button class="bg-btn" data-bg="lavender" style="background:linear-gradient(135deg,#d4b8e0,#b39ddb)"></button>
+            <button class="bg-btn" data-bg="sunset" style="background:linear-gradient(135deg,#ffcc70,#ff6b6b)"></button>
+            <button class="bg-btn" data-bg="stars" style="background:#1a1a2e url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22><circle cx=%2210%22 cy=%2210%22 r=%221%22 fill=%22white%22 opacity=%220.8%22/></svg>')">⭐</button>
+            <button class="bg-btn" data-bg="confetti" style="background:linear-gradient(135deg,#ffeaa7,#fd79a8)">🎉</button>
+          </div>
+        </section>
+
+        <section>
+          <h3>🎀 Stickers</h3>
+          <div class="sticker-grid">
+            <button class="sticker-btn" data-sticker="🌸">🌸</button>
+            <button class="sticker-btn" data-sticker="⭐">⭐</button>
+            <button class="sticker-btn" data-sticker="🦋">🦋</button>
+            <button class="sticker-btn" data-sticker="🌈">🌈</button>
+            <button class="sticker-btn" data-sticker="💖">💖</button>
+            <button class="sticker-btn" data-sticker="🍒">🍒</button>
+            <button class="sticker-btn" data-sticker="✨">✨</button>
+            <button class="sticker-btn" data-sticker="🎀">🎀</button>
+            <button class="sticker-btn" data-sticker="🌙">🌙</button>
+            <button class="sticker-btn" data-sticker="🍓">🍓</button>
+            <button class="sticker-btn" data-sticker="🐱">🐱</button>
+            <button class="sticker-btn" data-sticker="🌺">🌺</button>
+          </div>
+          <button id="clear-stickers" class="small-btn">Clear stickers</button>
+        </section>
+      </aside>
+
+      <!-- Center: Camera -->
+      <div class="camera-section">
+        <div class="camera-wrapper" id="camera-wrapper">
+          <video id="video" autoplay playsinline></video>
+          <canvas id="overlay-canvas"></canvas>
+          <div id="sticker-layer"></div>
+          <div id="countdown" class="countdown hidden"></div>
+          <div id="flash" class="flash hidden"></div>
+        </div>
+
+        <div class="camera-actions">
+          <div class="shots-indicator">
+            <span id="shot-count">0</span>/4 shots
+          </div>
+          <button id="capture-btn" class="capture-btn">📸 Take Photo</button>
+          <button id="reset-btn" class="small-btn">🔄 Reset</button>
+        </div>
+      </div>
+
+      <!-- Right: Strip -->
+      <aside class="strip-section">
+        <h3>🎞️ Your Strip</h3>
+        <div class="strip" id="strip">
+          <div class="strip-slot empty" id="slot-0"></div>
+          <div class="strip-slot empty" id="slot-1"></div>
+          <div class="strip-slot empty" id="slot-2"></div>
+          <div class="strip-slot empty" id="slot-3"></div>
+        </div>
+        <button id="download-btn" class="download-btn" disabled>💾 Download Strip</button>
+      </aside>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
