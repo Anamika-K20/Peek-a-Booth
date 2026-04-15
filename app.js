@@ -11,8 +11,10 @@ const state = {
   currentFilter: 'none',
   currentBg: 'none',
   shotsTaken: 0,
-  maxShots: 0,               // stripCount + 4 bonus
+  maxShots: 0,               // stripCount + bonus
   isCounting: false,
+  useTimer: true,            // 10s countdown on/off
+  useBonus: true,            // 4 bonus shots on/off
   stripBg: '#fff5f8',
   stripBorder: '#ffb3c6',
   stripLabel: '✨ Peek-a-Booth ✨',
@@ -67,12 +69,15 @@ document.querySelectorAll('.strip-choice').forEach(btn => {
   btn.addEventListener('click', () => {
     state.stripCount  = parseInt(btn.dataset.count);
     state.stripLayout = btn.dataset.layout;
-    state.maxShots    = state.stripCount + 4;
+    state.useTimer    = document.getElementById('opt-timer').checked;
+    state.useBonus    = document.getElementById('opt-bonus').checked;
+    state.maxShots    = state.stripCount + (state.useBonus ? 4 : 0);
     state.allPhotos   = [];
     state.shotsTaken  = 0;
     buildProgressDots();
     goTo('camera');
     initCamera();
+    shutterHint.textContent = state.useTimer ? 'tap to shoot' : 'tap to snap';
   });
 });
 
@@ -110,8 +115,9 @@ function updateProgressDots() {
     else if (i === state.shotsTaken) d.classList.add('active');
   }
   const bonus = state.maxShots - state.stripCount;
+  const bonusTxt = bonus > 0 ? ` (+${bonus} bonus)` : '';
   camStatus.textContent = state.shotsTaken < state.stripCount
-    ? `shot ${state.shotsTaken + 1} of ${state.stripCount} (+${bonus} bonus)`
+    ? `shot ${state.shotsTaken + 1} of ${state.stripCount}${bonusTxt}`
     : state.shotsTaken < state.maxShots
       ? `bonus shot ${state.shotsTaken - state.stripCount + 1} of ${bonus} ✨`
       : 'all done! pick your faves 🎉';
@@ -180,8 +186,14 @@ function startCountdown() {
   state.isCounting = true;
   captureBtn.disabled = true;
   shutterHint.textContent = 'smile! 😊';
-  let count = 10;
 
+  if (!state.useTimer) {
+    // instant capture
+    takePhoto();
+    return;
+  }
+
+  let count = 10;
   countdownEl.classList.remove('hidden');
   showCountNum(count);
 
@@ -247,7 +259,7 @@ function takePhoto() {
 
   if (state.shotsTaken < state.maxShots) {
     captureBtn.disabled = false;
-    shutterHint.textContent = 'tap to shoot';
+    shutterHint.textContent = state.useTimer ? 'tap to shoot' : 'tap to snap';
   } else {
     captureBtn.disabled = true;
     shutterHint.textContent = 'all done! 🎉';
@@ -269,8 +281,15 @@ function addReel(dataURL, num) {
 }
 
 doneShootBtn.addEventListener('click', () => {
-  buildPhotoPicker();
-  goTo('select');
+  if (!state.useBonus) {
+    // no bonus — all photos go straight to strip
+    state.selectedPhotos = [...state.allPhotos];
+    buildFinalStrip();
+    goTo('design');
+  } else {
+    buildPhotoPicker();
+    goTo('select');
+  }
 });
 
 // ── STAGE 3: Select ─────────────────────────────
@@ -485,6 +504,9 @@ restartBtn.addEventListener('click', () => {
   shutterHint.textContent = 'tap to shoot';
   stickerLayer.innerHTML = '';
   document.querySelectorAll('.strip-sticker-overlay').forEach(s => s.remove());
+  // re-sync toggles to current checkbox state
+  document.getElementById('opt-timer').checked = true;
+  document.getElementById('opt-bonus').checked = true;
   goTo('welcome');
 });
 
