@@ -7,27 +7,27 @@ const captureBtn = document.getElementById('capture-btn');
 const resetBtn = document.getElementById('reset-btn');
 const downloadBtn = document.getElementById('download-btn');
 const shotCountEl = document.getElementById('shot-count');
+const totalShotsEl = document.getElementById('total-shots');
 const cameraWrapper = document.getElementById('camera-wrapper');
+const stripEl = document.getElementById('strip');
 
+// --- State ---
 let currentFilter = 'none';
 let currentBg = 'none';
 let shotCount = 0;
-let photos = []; // array of dataURLs
+let photos = [];
 let isCounting = false;
-let selectedSticker = null;
 
-const bgGradients = {
-  none: null,
-  pink: ['#ffb3c6', '#ff85a1'],
-  blue: ['#a0c4ff', '#6fa3ef'],
-  mint: ['#b5ead7', '#6fcf97'],
-  lavender: ['#d4b8e0', '#b39ddb'],
-  sunset: ['#ffcc70', '#ff6b6b'],
-  stars: 'stars',
-  confetti: 'confetti',
-};
+let stripMode = '4-classic'; // '4-classic' | '4-grid' | '6-classic' | '6-grid'
+let totalShots = 4;
+let stripLayout = 'classic'; // 'classic' | 'grid'
 
-// --- Camera init ---
+let stripBg = '#fff5f8';
+let stripBorder = '#ffb3c6';
+let stripLabelText = '✨ Peek-a-Booth ✨';
+let stripLabelColor = '#ff85a1';
+
+// --- Camera ---
 async function initCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
@@ -41,7 +41,7 @@ async function initCamera() {
   }
 }
 
-// --- Filter buttons ---
+// --- Filters ---
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -51,7 +51,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   });
 });
 
-// --- Background buttons ---
+// --- Backgrounds ---
 document.querySelectorAll('.bg-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('active'));
@@ -60,12 +60,9 @@ document.querySelectorAll('.bg-btn').forEach(btn => {
   });
 });
 
-// --- Sticker buttons ---
+// --- Stickers ---
 document.querySelectorAll('.sticker-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    selectedSticker = btn.dataset.sticker;
-    placeSticker(selectedSticker);
-  });
+  btn.addEventListener('click', () => placeSticker(btn.dataset.sticker));
 });
 
 document.getElementById('clear-stickers').addEventListener('click', () => {
@@ -76,7 +73,6 @@ function placeSticker(emoji) {
   const el = document.createElement('span');
   el.className = 'sticker-on-cam';
   el.textContent = emoji;
-  // random position within camera
   const maxX = cameraWrapper.offsetWidth - 50;
   const maxY = cameraWrapper.offsetHeight - 50;
   el.style.left = (20 + Math.random() * (maxX - 20)) + 'px';
@@ -89,11 +85,9 @@ function makeDraggable(el) {
   let startX, startY, origLeft, origTop;
   el.addEventListener('mousedown', e => {
     e.preventDefault();
-    startX = e.clientX;
-    startY = e.clientY;
-    origLeft = parseInt(el.style.left);
-    origTop = parseInt(el.style.top);
-    const onMove = (e) => {
+    startX = e.clientX; startY = e.clientY;
+    origLeft = parseInt(el.style.left); origTop = parseInt(el.style.top);
+    const onMove = e => {
       el.style.left = (origLeft + e.clientX - startX) + 'px';
       el.style.top = (origTop + e.clientY - startY) + 'px';
     };
@@ -104,12 +98,11 @@ function makeDraggable(el) {
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
   });
-  // touch support
   el.addEventListener('touchstart', e => {
     const t = e.touches[0];
     startX = t.clientX; startY = t.clientY;
     origLeft = parseInt(el.style.left); origTop = parseInt(el.style.top);
-    const onMove = (e) => {
+    const onMove = e => {
       const t = e.touches[0];
       el.style.left = (origLeft + t.clientX - startX) + 'px';
       el.style.top = (origTop + t.clientY - startY) + 'px';
@@ -123,9 +116,97 @@ function makeDraggable(el) {
   });
 }
 
+// --- Strip Mode ---
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (shotCount > 0) {
+      if (!confirm('Changing strip mode will reset your current photos. Continue?')) return;
+      doReset();
+    }
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    stripMode = btn.dataset.mode;
+    totalShots = parseInt(btn.dataset.count);
+    stripLayout = stripMode.includes('grid') ? 'grid' : 'classic';
+    totalShotsEl.textContent = totalShots;
+    rebuildStrip();
+  });
+});
+
+function rebuildStrip() {
+  stripEl.innerHTML = '';
+  // Apply layout class
+  stripEl.classList.toggle('layout-grid', stripLayout === 'grid');
+  // Apply design
+  applyStripDesign();
+  // Build slots
+  for (let i = 0; i < totalShots; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'strip-slot empty';
+    slot.id = `slot-${i}`;
+    stripEl.appendChild(slot);
+  }
+  // Label bar
+  const label = document.createElement('div');
+  label.className = 'strip-label-bar';
+  label.id = 'strip-label-bar';
+  label.textContent = stripLabelText;
+  label.style.color = stripLabelColor;
+  stripEl.appendChild(label);
+  // Re-fill existing photos
+  photos.forEach((url, i) => addToStrip(url, i));
+}
+
+function applyStripDesign() {
+  stripEl.style.background = stripBg;
+  stripEl.style.borderColor = stripBorder;
+  const labelBar = document.getElementById('strip-label-bar');
+  if (labelBar) {
+    labelBar.textContent = stripLabelText;
+    labelBar.style.color = stripLabelColor;
+  }
+}
+
+// --- Strip Design Controls ---
+function setupSwatches(groupId, customInputId, onChange) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.swatch').forEach(s => {
+    s.addEventListener('click', () => {
+      group.querySelectorAll('.swatch').forEach(x => x.classList.remove('active'));
+      s.classList.add('active');
+      onChange(s.dataset.val);
+    });
+  });
+  const custom = document.getElementById(customInputId);
+  custom.addEventListener('input', () => {
+    group.querySelectorAll('.swatch').forEach(x => x.classList.remove('active'));
+    onChange(custom.value);
+  });
+}
+
+setupSwatches('strip-bg-swatches', 'strip-bg-custom', val => {
+  stripBg = val;
+  applyStripDesign();
+});
+
+setupSwatches('strip-border-swatches', 'strip-border-custom', val => {
+  stripBorder = val;
+  applyStripDesign();
+});
+
+setupSwatches('strip-label-swatches', 'strip-label-custom', val => {
+  stripLabelColor = val;
+  applyStripDesign();
+});
+
+document.getElementById('strip-label').addEventListener('input', e => {
+  stripLabelText = e.target.value;
+  applyStripDesign();
+});
+
 // --- Capture ---
 captureBtn.addEventListener('click', () => {
-  if (isCounting || shotCount >= 4) return;
+  if (isCounting || shotCount >= totalShots) return;
   startCountdown();
 });
 
@@ -141,7 +222,7 @@ function startCountdown() {
     if (count > 0) {
       countdownEl.textContent = count;
       countdownEl.style.animation = 'none';
-      void countdownEl.offsetWidth; // reflow
+      void countdownEl.offsetWidth;
       countdownEl.style.animation = 'pulse 1s ease-in-out';
     } else {
       clearInterval(interval);
@@ -152,25 +233,18 @@ function startCountdown() {
 }
 
 function takePhoto() {
-  // Flash
   flashEl.classList.remove('hidden');
   flashEl.classList.add('active');
-  setTimeout(() => {
-    flashEl.classList.add('hidden');
-    flashEl.classList.remove('active');
-  }, 400);
+  setTimeout(() => { flashEl.classList.add('hidden'); flashEl.classList.remove('active'); }, 400);
 
   const canvas = document.createElement('canvas');
   const w = video.videoWidth || 640;
   const h = video.videoHeight || 480;
-  canvas.width = w;
-  canvas.height = h;
+  canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext('2d');
 
-  // Draw background
   drawBackground(ctx, w, h, currentBg);
 
-  // Draw video (mirrored + filtered)
   ctx.save();
   ctx.filter = currentFilter === 'none' ? 'none' : currentFilter;
   ctx.translate(w, 0);
@@ -178,12 +252,9 @@ function takePhoto() {
   ctx.drawImage(video, 0, 0, w, h);
   ctx.restore();
 
-  // Draw stickers
   const stickers = stickerLayer.querySelectorAll('.sticker-on-cam');
-  const wrapperRect = cameraWrapper.getBoundingClientRect();
   const scaleX = w / cameraWrapper.offsetWidth;
   const scaleY = h / cameraWrapper.offsetHeight;
-
   stickers.forEach(s => {
     const x = parseInt(s.style.left) * scaleX;
     const y = parseInt(s.style.top) * scaleY;
@@ -196,9 +267,9 @@ function takePhoto() {
   addToStrip(dataURL, shotCount);
   shotCount++;
   shotCountEl.textContent = shotCount;
-
   isCounting = false;
-  if (shotCount < 4) {
+
+  if (shotCount < totalShots) {
     captureBtn.disabled = false;
   } else {
     captureBtn.disabled = true;
@@ -209,24 +280,19 @@ function takePhoto() {
 
 function drawBackground(ctx, w, h, bg) {
   if (!bg || bg === 'none') return;
-
   if (bg === 'stars') {
     ctx.fillStyle = '#1a1a2e';
     ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = 'white';
     for (let i = 0; i < 80; i++) {
-      const x = Math.random() * w;
-      const y = Math.random() * h;
-      const r = Math.random() * 2;
       ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.arc(Math.random() * w, Math.random() * h, Math.random() * 2, 0, Math.PI * 2);
       ctx.fill();
     }
     return;
   }
-
   if (bg === 'confetti') {
-    const colors = ['#ffeaa7', '#fd79a8', '#74b9ff', '#55efc4', '#a29bfe', '#fdcb6e'];
+    const colors = ['#ffeaa7','#fd79a8','#74b9ff','#55efc4','#a29bfe','#fdcb6e'];
     ctx.fillStyle = '#fff9f0';
     ctx.fillRect(0, 0, w, h);
     for (let i = 0; i < 60; i++) {
@@ -239,15 +305,10 @@ function drawBackground(ctx, w, h, bg) {
     }
     return;
   }
-
   const gradMap = {
-    pink: ['#ffb3c6', '#ff85a1'],
-    blue: ['#a0c4ff', '#6fa3ef'],
-    mint: ['#b5ead7', '#6fcf97'],
-    lavender: ['#d4b8e0', '#b39ddb'],
-    sunset: ['#ffcc70', '#ff6b6b'],
+    pink: ['#ffb3c6','#ff85a1'], blue: ['#a0c4ff','#6fa3ef'],
+    mint: ['#b5ead7','#6fcf97'], lavender: ['#d4b8e0','#b39ddb'], sunset: ['#ffcc70','#ff6b6b'],
   };
-
   if (gradMap[bg]) {
     const grad = ctx.createLinearGradient(0, 0, w, h);
     grad.addColorStop(0, gradMap[bg][0]);
@@ -259,6 +320,7 @@ function drawBackground(ctx, w, h, bg) {
 
 function addToStrip(dataURL, index) {
   const slot = document.getElementById(`slot-${index}`);
+  if (!slot) return;
   slot.classList.remove('empty');
   slot.classList.add('filled');
   slot.innerHTML = '';
@@ -268,7 +330,7 @@ function addToStrip(dataURL, index) {
 }
 
 // --- Reset ---
-resetBtn.addEventListener('click', () => {
+function doReset() {
   shotCount = 0;
   photos = [];
   shotCountEl.textContent = '0';
@@ -276,72 +338,85 @@ resetBtn.addEventListener('click', () => {
   captureBtn.textContent = '📸 Take Photo';
   downloadBtn.disabled = true;
   stickerLayer.innerHTML = '';
-  for (let i = 0; i < 4; i++) {
-    const slot = document.getElementById(`slot-${i}`);
-    slot.classList.remove('filled');
-    slot.classList.add('empty');
-    slot.innerHTML = '';
-  }
-});
+  rebuildStrip();
+}
 
-// --- Download strip ---
+resetBtn.addEventListener('click', doReset);
+
+// --- Download ---
 downloadBtn.addEventListener('click', () => {
-  if (photos.length < 4) return;
+  if (photos.length < totalShots) return;
 
-  const stripCanvas = document.createElement('canvas');
+  const isGrid = stripLayout === 'grid';
   const photoW = 400;
   const photoH = 300;
-  const padding = 16;
-  const borderW = 20;
-  const labelH = 50;
+  const gap = 12;
+  const pad = 20;
+  const labelH = 52;
 
-  stripCanvas.width = photoW + borderW * 2;
-  stripCanvas.height = (photoH + padding) * 4 + borderW * 2 + labelH;
+  let canvasW, canvasH;
+  if (isGrid) {
+    canvasW = photoW * 2 + gap + pad * 2;
+    const rows = totalShots / 2;
+    canvasH = photoH * rows + gap * (rows - 1) + pad * 2 + labelH;
+  } else {
+    canvasW = photoW + pad * 2;
+    canvasH = (photoH + gap) * totalShots + pad * 2 + labelH;
+  }
 
-  const ctx = stripCanvas.getContext('2d');
+  const sc = document.createElement('canvas');
+  sc.width = canvasW;
+  sc.height = canvasH;
+  const ctx = sc.getContext('2d');
 
   // Strip background
-  ctx.fillStyle = '#fff5f8';
-  ctx.fillRect(0, 0, stripCanvas.width, stripCanvas.height);
+  ctx.fillStyle = stripBg;
+  ctx.fillRect(0, 0, canvasW, canvasH);
 
-  // Border decoration
-  ctx.strokeStyle = '#ffb3c6';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(8, 8, stripCanvas.width - 16, stripCanvas.height - 16);
+  // Outer border
+  ctx.strokeStyle = stripBorder;
+  ctx.lineWidth = 5;
+  ctx.strokeRect(6, 6, canvasW - 12, canvasH - 12);
 
-  // Draw photos
-  const loadPromises = photos.map((src, i) => {
-    return new Promise(resolve => {
-      const img = new Image();
-      img.onload = () => {
-        const y = borderW + i * (photoH + padding);
-        ctx.drawImage(img, borderW, y, photoW, photoH);
-        // cute border per photo
-        ctx.strokeStyle = '#ff85a1';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(borderW, y, photoW, photoH);
-        resolve();
-      };
-      img.src = src;
-    });
-  });
+  const loadPromises = photos.map((src, i) => new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      let x, y;
+      if (isGrid) {
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        x = pad + col * (photoW + gap);
+        y = pad + row * (photoH + gap);
+      } else {
+        x = pad;
+        y = pad + i * (photoH + gap);
+      }
+      ctx.drawImage(img, x, y, photoW, photoH);
+      ctx.strokeStyle = stripBorder;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, photoW, photoH);
+      resolve();
+    };
+    img.src = src;
+  }));
 
   Promise.all(loadPromises).then(() => {
-    // Label at bottom
-    const labelY = stripCanvas.height - labelH;
-    ctx.fillStyle = '#ff85a1';
-    ctx.fillRect(0, labelY, stripCanvas.width, labelH);
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 18px Nunito, sans-serif';
+    // Label bar
+    const labelY = canvasH - labelH;
+    ctx.fillStyle = stripBorder;
+    ctx.fillRect(0, labelY, canvasW, labelH);
+    ctx.fillStyle = stripLabelColor;
+    ctx.font = `bold 20px 'Pacifico', cursive`;
     ctx.textAlign = 'center';
-    ctx.fillText('✨ Photobooth ✨', stripCanvas.width / 2, labelY + 32);
+    ctx.fillText(stripLabelText || '✨ Peek-a-Booth ✨', canvasW / 2, labelY + 34);
 
     const link = document.createElement('a');
-    link.download = 'photobooth-strip.png';
-    link.href = stripCanvas.toDataURL('image/png');
+    link.download = `peek-a-booth-${stripMode}.png`;
+    link.href = sc.toDataURL('image/png');
     link.click();
   });
 });
 
 // --- Init ---
+rebuildStrip();
 initCamera();

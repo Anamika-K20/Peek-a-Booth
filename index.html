@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>✨ Cute Photobooth</title>
+  <title>✨ Peek-a-Booth</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
     <header>
-      <h1>✨ Photobooth ✨</h1>
+      <h1>✨ Peek-a-Booth ✨</h1>
       <p class="subtitle">Strike a pose, darling~</p>
     </header>
 
     <div class="main-layout">
-      <!-- Left: Controls -->
+
+      <!-- Left: Camera Controls -->
       <aside class="controls">
         <section>
           <h3>🎨 Filters</h3>
@@ -39,7 +40,7 @@
             <button class="bg-btn" data-bg="mint" style="background:linear-gradient(135deg,#b5ead7,#6fcf97)"></button>
             <button class="bg-btn" data-bg="lavender" style="background:linear-gradient(135deg,#d4b8e0,#b39ddb)"></button>
             <button class="bg-btn" data-bg="sunset" style="background:linear-gradient(135deg,#ffcc70,#ff6b6b)"></button>
-            <button class="bg-btn" data-bg="stars" style="background:#1a1a2e url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22><circle cx=%2210%22 cy=%2210%22 r=%221%22 fill=%22white%22 opacity=%220.8%22/></svg>')">⭐</button>
+            <button class="bg-btn" data-bg="stars" style="background:#1a1a2e">⭐</button>
             <button class="bg-btn" data-bg="confetti" style="background:linear-gradient(135deg,#ffeaa7,#fd79a8)">🎉</button>
           </div>
         </section>
@@ -76,23 +77,88 @@
 
         <div class="camera-actions">
           <div class="shots-indicator">
-            <span id="shot-count">0</span>/4 shots
+            <span id="shot-count">0</span>/<span id="total-shots">4</span> shots
           </div>
           <button id="capture-btn" class="capture-btn">📸 Take Photo</button>
           <button id="reset-btn" class="small-btn">🔄 Reset</button>
         </div>
       </div>
 
-      <!-- Right: Strip -->
+      <!-- Right: Strip Designer + Preview -->
       <aside class="strip-section">
-        <h3>🎞️ Your Strip</h3>
-        <div class="strip" id="strip">
-          <div class="strip-slot empty" id="slot-0"></div>
-          <div class="strip-slot empty" id="slot-1"></div>
-          <div class="strip-slot empty" id="slot-2"></div>
-          <div class="strip-slot empty" id="slot-3"></div>
-        </div>
-        <button id="download-btn" class="download-btn" disabled>💾 Download Strip</button>
+
+        <!-- Strip Mode -->
+        <section class="strip-design-section">
+          <h3>🎞️ Strip Mode</h3>
+          <div class="mode-grid">
+            <button class="mode-btn active" data-mode="4-classic" data-count="4">
+              <span class="mode-icon">▬<br>▬<br>▬<br>▬</span>
+              <span>4 Classic</span>
+            </button>
+            <button class="mode-btn" data-mode="4-grid" data-count="4">
+              <span class="mode-icon grid2x2">▪▪<br>▪▪</span>
+              <span>4 Grid</span>
+            </button>
+            <button class="mode-btn" data-mode="6-classic" data-count="6">
+              <span class="mode-icon">▬<br>▬<br>▬<br>▬<br>▬<br>▬</span>
+              <span>6 Classic</span>
+            </button>
+            <button class="mode-btn" data-mode="6-grid" data-count="6">
+              <span class="mode-icon grid2x3">▪▪<br>▪▪<br>▪▪</span>
+              <span>6 Grid</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Strip Design -->
+        <section class="strip-design-section">
+          <h3>🖌️ Strip Design</h3>
+
+          <label class="design-label">Strip Background</label>
+          <div class="color-swatches" id="strip-bg-swatches">
+            <button class="swatch active" data-val="#fff5f8" style="background:#fff5f8" title="Blush"></button>
+            <button class="swatch" data-val="#ffffff" style="background:#ffffff;border:1px solid #eee" title="White"></button>
+            <button class="swatch" data-val="#1a1a2e" style="background:#1a1a2e" title="Night"></button>
+            <button class="swatch" data-val="#f0fff4" style="background:#f0fff4" title="Mint"></button>
+            <button class="swatch" data-val="#fffde7" style="background:#fffde7" title="Cream"></button>
+            <button class="swatch" data-val="#f3e5f5" style="background:#f3e5f5" title="Lavender"></button>
+            <input type="color" id="strip-bg-custom" value="#fff5f8" title="Custom color" class="color-input"/>
+          </div>
+
+          <label class="design-label">Border Color</label>
+          <div class="color-swatches" id="strip-border-swatches">
+            <button class="swatch active" data-val="#ffb3c6" style="background:#ffb3c6" title="Pink"></button>
+            <button class="swatch" data-val="#c77dff" style="background:#c77dff" title="Purple"></button>
+            <button class="swatch" data-val="#74b9ff" style="background:#74b9ff" title="Blue"></button>
+            <button class="swatch" data-val="#55efc4" style="background:#55efc4" title="Mint"></button>
+            <button class="swatch" data-val="#ffd166" style="background:#ffd166" title="Yellow"></button>
+            <button class="swatch" data-val="#1a1a2e" style="background:#1a1a2e" title="Dark"></button>
+            <input type="color" id="strip-border-custom" value="#ffb3c6" title="Custom color" class="color-input"/>
+          </div>
+
+          <label class="design-label">Label Text</label>
+          <input type="text" id="strip-label" class="text-input" value="✨ Peek-a-Booth ✨" maxlength="30" placeholder="Your label..." />
+
+          <label class="design-label">Label Color</label>
+          <div class="color-swatches" id="strip-label-swatches">
+            <button class="swatch active" data-val="#ff85a1" style="background:#ff85a1" title="Pink"></button>
+            <button class="swatch" data-val="#c77dff" style="background:#c77dff" title="Purple"></button>
+            <button class="swatch" data-val="#1a1a2e" style="background:#1a1a2e" title="Dark"></button>
+            <button class="swatch" data-val="#ffd166" style="background:#ffd166" title="Yellow"></button>
+            <button class="swatch" data-val="#55efc4" style="background:#55efc4" title="Mint"></button>
+            <input type="color" id="strip-label-custom" value="#ff85a1" title="Custom color" class="color-input"/>
+          </div>
+        </section>
+
+        <!-- Strip Preview -->
+        <section class="strip-design-section">
+          <h3>👁️ Preview</h3>
+          <div class="strip-preview-wrap">
+            <div class="strip" id="strip"></div>
+          </div>
+          <button id="download-btn" class="download-btn" disabled>💾 Download Strip</button>
+        </section>
+
       </aside>
     </div>
   </div>
